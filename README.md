@@ -4,6 +4,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 1. ensure [yarn is installed](https://classic.yarnpkg.com/lang/en/docs/install/), and run `yarn install`
 
+1. run `install-hooks.sh` to setup your git hooks
+
 1. make a local environment file by copying `.env.example` and renaming the copy to `.env.local` and filling out the missing variables
 
 1. run the development server with `yarn dev`
