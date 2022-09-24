@@ -6,6 +6,8 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 1. make a local environment file by copying `.env.example` and renaming the copy to `.env.local` and filling out the missing variables
 
+1. ensure your database is started with `docker compose --env-file ./.env.local up -d`
+
 1. run the development server with `yarn dev`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
