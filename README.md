@@ -2,13 +2,11 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+1. ensure [yarn is installed](https://classic.yarnpkg.com/lang/en/docs/install/), and run `yarn install`
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+1. make a local environment file by copying `.env.example` and renaming the copy to `.env.local` and filling out the missing variables
+
+1. run the development server with `yarn dev`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
