@@ -1,81 +1,43 @@
-import { PrimaryColumn, BaseEntity, Column, ManyToOne } from "typeorm";
+import {
+  PrimaryColumn,
+  BaseEntity,
+  Column,
+  JoinColumn,
+  Entity,
+  ManyToOne,
+} from "typeorm";
 import argon2 from "argon2";
 import { User } from "./user";
 
 const PEPPER = process.env.HASH_PEPPER;
 
+@Entity()
 export class Password extends BaseEntity {
-  @PrimaryColumn()
-  @ManyToOne(() => User, (user) => user.uuid)
-  uuid: string;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: "userUuid", referencedColumnName: "uuid" })
+  user: User;
 
-  @Column({ type: "varchar", length: 1000 })
-  hash: string;
-
-  @PrimaryColumn()
-  @Column({ type: "bigint", default: () => Date.now() })
+  @PrimaryColumn({ type: "bigint" })
   createdAt: number;
 
   @Column({ type: "bigint", nullable: true, default: null })
   deletedAt: number | null;
 
-  constructor(
-    uuid: string,
-    hashedPassword: string,
-    createdAt = Date.now(),
-    deletedAt = null
-  ) {
-    super();
+  @Column({ type: "varchar", length: 1000 })
+  hash: string;
 
-    Password.validateConstructorParams(
-      uuid,
-      hashedPassword,
-      createdAt,
-      deletedAt
-    );
-
-    this.uuid = uuid;
-    this.hash = hashedPassword;
-    this.createdAt = createdAt;
-    this.deletedAt = deletedAt;
-  }
-
-  private static validateConstructorParams(
-    uuid: string,
-    hashedPassword: string,
-    createdAt: number,
-    deletedAt: number | null
-  ) {
-    if (!uuid || uuid.length === 0) {
-      throw new Error("uuid is required");
-    }
-
-    if (
-      /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i.test(
-        uuid
-      )
-    ) {
-      throw new Error("uuid is not a valid uuid");
-    }
-
-    if (!hashedPassword || hashedPassword.length === 0) {
-      throw new Error("password is required");
-    }
-
-    if (!hashedPassword.startsWith("$argon2")) {
-      throw new Error("password is not hashed");
-    }
-
-    if (createdAt < 0) {
-      throw new Error("createdAt is not a valid timestamp");
-    }
-
-    if (deletedAt && deletedAt < 0) {
-      throw new Error("deletedAt is not a valid timestamp");
-    }
-  }
-
-  public static async generatePasswordHash(password: string) {
+  public static async hash(password: string) {
     return await argon2.hash(password + PEPPER);
+  }
+
+  public async verify(password: string) {
+    return await argon2.verify(this.hash, password + PEPPER);
+  }
+
+  public static async getForUser(user: User) {
+    return await this.createQueryBuilder("password")
+      .where("password.userUuid = :userUuid", { userUuid: user.uuid })
+      .andWhere("password.deletedAt IS NULL")
+      .getOne();
   }
 }

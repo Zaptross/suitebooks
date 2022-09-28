@@ -17,22 +17,35 @@ export class User extends BaseEntity {
   @Column({ type: "varchar", length: 255, unique: true })
   phoneNumber: string;
 
-  constructor(
-    uuid: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-    phoneNumber: string
-  ) {
-    super();
-    this.uuid = uuid;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    this.phoneNumber = phoneNumber;
-  }
+  @Column({ type: "boolean", default: false })
+  verified: boolean;
 
   public get fullName() {
     return `${this.firstName} ${this.lastName}`;
+  }
+
+  public static async exists(email: string, phoneNumber: string) {
+    const user = await this.createQueryBuilder("user")
+      .where("user.email = :email", { email })
+      .orWhere("user.phoneNumber = :phoneNumber", { phoneNumber })
+      .getOne();
+
+    return {
+      uuid: user?.uuid,
+      email: user?.email === email,
+      phoneNumber: user?.phoneNumber === phoneNumber,
+    };
+  }
+
+  public static async getByEmail(email: string) {
+    return await this.createQueryBuilder("user")
+      .where("user.email = :email", { email })
+      .getOne();
+  }
+
+  public static async getByPhoneNumber(phoneNumber: string) {
+    return await this.createQueryBuilder("user")
+      .where("user.phoneNumber = :phoneNumber", { phoneNumber })
+      .getOne();
   }
 }
