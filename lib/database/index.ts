@@ -36,7 +36,7 @@ const getConfig: () => Config = () => {
   return config as Config;
 };
 
-const initialise = () => {
+async function initialise() {
   const config = getConfig();
 
   const db = new DataSource({
@@ -51,7 +51,11 @@ const initialise = () => {
     logging: ["error", "schema"],
   });
 
-  db.initialize();
-};
+  await db.initialize();
+  logger.info("Database initialised");
+}
 
 export * from "./entities";
+
+// This is a bad pattern generally, but because we're not currently using a custom server.js for Nextjs, we need to initialise the database here.
+initialise();
