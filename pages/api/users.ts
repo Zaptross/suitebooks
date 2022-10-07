@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import parsePhoneNumber from "libphonenumber-js";
 import { User, Password } from "../../lib/database";
 import { isEmailValid } from "../../lib/utils/validation";
-import { APIErrorResponse } from "../../lib/utils/api";
+import { APIErrorResponse, APIRequest } from "../../lib/utils/api";
 import logger from "../../lib/logger/logger";
 import { v4 as uuidv4 } from "uuid";
 
@@ -68,7 +68,7 @@ export default async function (
 }
 
 async function postCreateUser(
-  req: NextApiRequest,
+  req: APIRequest<CreateUserParams>,
   res: NextApiResponse<CreateUserResponse>
 ) {
   try {
