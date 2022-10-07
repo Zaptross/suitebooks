@@ -1,4 +1,12 @@
-import { Entity, BaseEntity, PrimaryColumn, Column } from "typeorm";
+import {
+  Entity,
+  BaseEntity,
+  PrimaryColumn,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 @Entity()
 export class User extends BaseEntity {
@@ -17,8 +25,17 @@ export class User extends BaseEntity {
   @Column({ type: "varchar", length: 255, unique: true })
   phoneNumber: string;
 
-  @Column({ type: "boolean", default: false })
-  verified: boolean;
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: "timestamptz", nullable: true, default: null })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ type: "timestamptz", nullable: true, default: null })
+  deletedAt: Date;
+
+  @Column({ type: "timestamptz", nullable: true, default: null })
+  verified: Date;
 
   public get fullName() {
     return `${this.firstName} ${this.lastName}`;
