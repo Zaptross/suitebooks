@@ -2,7 +2,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import parsePhoneNumber from "libphonenumber-js";
 import { User, Password } from "../../lib/database";
 import { isEmailValid } from "../../lib/utils/validation";
-import { APIResponse, APIRequest } from "../../lib/utils/api";
+import {
+  APIResponse,
+  APIRequest,
+  internalServerError,
+  badRequest,
+} from "../../lib/utils/api";
 import logger from "../../lib/logger/logger";
 import { v4 as uuidv4 } from "uuid";
 
@@ -78,9 +83,8 @@ async function postCreateUser(
   let validatedParams: CreateUserParams;
   try {
     validatedParams = validateCreateUserParams(req.body);
-  } catch (e) {
-    res.status(400).json({ error: (e as Error).message });
-    return;
+  } catch (error) {
+    return badRequest(res, error as Error);
   }
 
   try {
@@ -89,10 +93,10 @@ async function postCreateUser(
 
     const exists = await User.exists(email, phoneNumber);
     if (exists.email || exists.phoneNumber) {
-      res.status(400).json({ error: "Bad request" });
-
+      // log warning that someone tried to create a user with an email or phone number that is already in use
+      // then return 400 with non-specific error message to prevent user enumeration
       logger.warn(getInUseWarningText(exists));
-      return;
+      return badRequest(res, new Error("Bad request"));
     }
 
     const user = User.create({
@@ -115,8 +119,7 @@ async function postCreateUser(
 
     res.status(200).json({ uuid: user.uuid });
   } catch (error) {
-    logger.error(req.method, req.url, (error as Error).message, error);
-    res.status(500).json({ error: "Internal server error" });
+    return internalServerError(req, res, error as Error);
   }
 }
 
