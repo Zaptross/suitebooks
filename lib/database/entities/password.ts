@@ -5,6 +5,8 @@ import {
   JoinColumn,
   Entity,
   ManyToOne,
+  CreateDateColumn,
+  DeleteDateColumn,
 } from "typeorm";
 import argon2 from "argon2";
 import { User } from "./user";
@@ -13,15 +15,22 @@ const PEPPER = process.env.HASH_PEPPER;
 
 @Entity()
 export class Password extends BaseEntity {
+  @PrimaryColumn({ type: "uuid" })
+  uuid: string;
+
   @ManyToOne(() => User)
-  @JoinColumn({ name: "userUuid", referencedColumnName: "uuid" })
+  @JoinColumn({
+    name: "userUuid",
+    referencedColumnName: "uuid",
+    foreignKeyConstraintName: "fk_password_user_uuid",
+  })
   user: User;
 
-  @PrimaryColumn({ type: "bigint" })
-  createdAt: number;
+  @CreateDateColumn({ type: "timestamptz" })
+  createdAt: Date;
 
-  @Column({ type: "bigint", nullable: true, default: null })
-  deletedAt: number | null;
+  @DeleteDateColumn({ type: "timestamptz", nullable: true, default: null })
+  deletedAt: Date;
 
   @Column({ type: "varchar", length: 1000 })
   hash: string;
