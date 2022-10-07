@@ -73,9 +73,10 @@ export class Password extends BaseEntity {
     return await argon2.verify(this.hash, password + PEPPER);
   }
 
-  public static async getForUser(user: User) {
+  public static async getForUser(userUuid: string) {
     return await this.createQueryBuilder("password")
-      .where("password.userUuid = :userUuid", { userUuid: user.uuid })
+      .where("password.userUuid = :userUuid", { userUuid })
+      .leftJoinAndSelect("password.user", "user")
       .andWhere("password.deletedAt IS NULL")
       .getOne();
   }
