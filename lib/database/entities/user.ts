@@ -8,6 +8,13 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
+export enum UserType {
+  GUEST,
+  STAFF,
+  MANAGER,
+  ADMIN,
+}
+
 @Entity()
 export class User extends BaseEntity {
   @PrimaryColumn({ type: "uuid", unique: true })
@@ -24,6 +31,9 @@ export class User extends BaseEntity {
 
   @Column({ type: "varchar", length: 255, unique: true })
   phoneNumber: string;
+
+  @Column({ type: "enum", enum: UserType, default: UserType.GUEST })
+  type: UserType;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
