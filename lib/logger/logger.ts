@@ -17,17 +17,17 @@ const colouriseByLogLevel = {
   [LogLevel.FATAL]: (content: string) => `\x1b[35m${content}\x1b[0m`,
 };
 
-function formatLoggable(level: LogLevel, loggable: unknown) {
+function formatLoggable(level: LogLevel, loggable: unknown[]) {
   const timestamp = new Date().toISOString();
   const levelString = LogLevel[level];
 
   return [
     `${timestamp} [${colouriseByLogLevel[level](levelString)}]:`,
-    loggable,
+    ...loggable,
   ];
 }
 
-function doLog(level: LogLevel, loggable: unknown) {
+function doLog(level: LogLevel, ...loggable: unknown[]) {
   if (level < logLevel) {
     return void 0;
   }
@@ -40,16 +40,36 @@ function doLog(level: LogLevel, loggable: unknown) {
 }
 
 if (logLevel) {
-  doLog(LogLevel.INFO, `Log level set to ${LogLevel[LogLevel.INFO]}`);
+  doLog(LogLevel.INFO, `Log level set to ${logLevel}`);
 }
 
 export default (() => {
   doLog(LogLevel.DEBUG, "Logger initialised");
   return {
-    debug: (loggable: unknown) => doLog(LogLevel.DEBUG, loggable),
-    info: (loggable: unknown) => doLog(LogLevel.INFO, loggable),
-    warn: (loggable: unknown) => doLog(LogLevel.WARN, loggable),
-    error: (loggable: unknown) => doLog(LogLevel.ERROR, loggable),
-    fatal: (loggable: unknown) => doLog(LogLevel.FATAL, loggable),
+    /**
+     * Log a debug message.
+     * eg: reached this point in the code
+     */
+    debug: (...loggable: unknown[]) => doLog(LogLevel.DEBUG, ...loggable),
+    /**
+     * Log an informational message
+     * eg: initialisation.
+     */
+    info: (...loggable: unknown[]) => doLog(LogLevel.INFO, ...loggable),
+    /**
+     * Log a warning message
+     * eg: a benign error, or a potential issue.
+     */
+    warn: (...loggable: unknown[]) => doLog(LogLevel.WARN, ...loggable),
+    /**
+     * Log an error message
+     * eg: a serious error, or service interruption.
+     */
+    error: (...loggable: unknown[]) => doLog(LogLevel.ERROR, ...loggable),
+    /**
+     * Log a fatal error message AND exit the process.
+     * eg: a critical error, or a database connection failure.
+     */
+    fatal: (...loggable: unknown[]) => doLog(LogLevel.FATAL, ...loggable),
   };
 })();
