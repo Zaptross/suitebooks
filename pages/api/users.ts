@@ -2,15 +2,13 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import parsePhoneNumber from "libphonenumber-js";
 import { User, Password } from "../../lib/database";
 import { isEmailValid } from "../../lib/utils/validation";
-import { APIErrorResponse, APIRequest } from "../../lib/utils/api";
+import { APIResponse, APIRequest } from "../../lib/utils/api";
 import logger from "../../lib/logger/logger";
 import { v4 as uuidv4 } from "uuid";
 
-type CreateUserResponse =
-  | APIErrorResponse
-  | {
-      uuid: string;
-    };
+type CreateUserResponse = {
+  uuid: string;
+};
 
 type CreateUserParams = {
   email: string;
@@ -45,6 +43,11 @@ function validateCreateUserParams(params: CreateUserParams) {
     throw new Error("Invalid phone number");
   }
 
+  const failReasons = Password.checkFailedPasswordRules(params.password);
+  if (failReasons.length > 0) {
+    throw new Error(`Password failed rules: ${failReasons.join(", ")}`);
+  }
+
   return {
     email: params.email,
     password: params.password,
@@ -55,12 +58,12 @@ function validateCreateUserParams(params: CreateUserParams) {
 }
 
 export default async function (
-  req: NextApiRequest,
-  res: NextApiResponse<CreateUserResponse>
+  req: APIRequest<CreateUserParams>,
+  res: APIResponse<CreateUserResponse>
 ) {
   switch (req.method) {
     case "POST":
-      postCreateUser(req, res);
+      postCreateUser(...([req, res] as Parameters<typeof postCreateUser>));
       break;
     default:
       res.status(405).json({ error: "Method not allowed" });
@@ -69,12 +72,20 @@ export default async function (
 
 async function postCreateUser(
   req: APIRequest<CreateUserParams>,
-  res: NextApiResponse<CreateUserResponse>
+  res: APIResponse<CreateUserResponse>
 ) {
+  // Validate parameters from request body return 400 with error message if invalid
+  let validatedParams: CreateUserParams;
   try {
-    // Validate and extract parameters from request body
+    validatedParams = validateCreateUserParams(req.body);
+  } catch (e) {
+    res.status(400).json({ error: (e as Error).message });
+    return;
+  }
+
+  try {
     const { email, password, firstName, lastName, phoneNumber } =
-      validateCreateUserParams(req.body);
+      validatedParams;
 
     const exists = await User.exists(email, phoneNumber);
     if (exists.email || exists.phoneNumber) {
@@ -90,6 +101,7 @@ async function postCreateUser(
       firstName,
       lastName,
       phoneNumber,
+      // TODO - allow admins to create users of different types if they have the permission and are authenticated
     });
 
     const userPassword = Password.create({

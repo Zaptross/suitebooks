@@ -1,8 +1,10 @@
-import { NextApiRequest } from "next";
+import { NextApiRequest, NextApiResponse } from "next";
 import { Override } from "./types";
 
-export type APIErrorResponse = {
+type APIErrorResponse = {
   error: string;
 };
 
-export type APIRequest<T> = Override<NextApiRequest, { body: T }>;
+export type APIResponse<T = {}> = NextApiResponse<T | APIErrorResponse>;
+
+export type APIRequest<T = {}> = Override<NextApiRequest, { body: T }>;
