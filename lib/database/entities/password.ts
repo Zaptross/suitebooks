@@ -35,6 +35,36 @@ export class Password extends BaseEntity {
   @Column({ type: "varchar", length: 1000 })
   hash: string;
 
+  public static checkFailedPasswordRules(password: string): string[] {
+    const reasons: string[] = [];
+
+    if (password.length < 8) {
+      reasons.push("Password must be at least 8 characters");
+    }
+
+    if (password.length >= 1000) {
+      reasons.push("Password must be at most 1000 characters");
+    }
+
+    if (!/[a-z]/.test(password)) {
+      reasons.push("Password must contain at least one lowercase letter");
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      reasons.push("Password must contain at least one uppercase letter");
+    }
+
+    if (!/[0-9]/.test(password)) {
+      reasons.push("Password must contain at least one number");
+    }
+
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      reasons.push("Password must contain at least one special character");
+    }
+
+    return reasons;
+  }
+
   public static async hash(password: string) {
     return await argon2.hash(password + PEPPER);
   }
@@ -43,9 +73,10 @@ export class Password extends BaseEntity {
     return await argon2.verify(this.hash, password + PEPPER);
   }
 
-  public static async getForUser(user: User) {
+  public static async getForUser(userUuid: string) {
     return await this.createQueryBuilder("password")
-      .where("password.userUuid = :userUuid", { userUuid: user.uuid })
+      .where("password.userUuid = :userUuid", { userUuid })
+      .leftJoinAndSelect("password.user", "user")
       .andWhere("password.deletedAt IS NULL")
       .getOne();
   }
