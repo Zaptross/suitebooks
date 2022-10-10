@@ -9,3 +9,11 @@ services:
       - "POSTGRES_PASSWORD=${DB_PASSWORD}"
       - "POSTGRES_DB=${DB_NAME}"
     restart: unless-stopped
+  redis:
+    image: bitnami/redis:latest
+    ports:
+      - ${CACHE_PORT}:${CACHE_PORT}
+    environment:
+      - REDIS_PORT_NUMBER=${CACHE_PORT}
+      - REDIS_PASSWORD=${CACHE_PASSWORD}
+    restart: unless-stopped
