@@ -3,17 +3,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   // webpack: (config, { isServer }) => {
-  //   if (!isServer) {
-  //     config.externals = [
-  //       "argon2",
-  //       "libphonenumber-js",
-  //       "typeorm",
-  //       "pg",
-  //       "cors",
-  //     ];
-  //   }
-
-  //   return config;
+  // if (isServer) {
+  // }
+  // config.module.rules.push({});
+  // return config;
   // },
 };
 

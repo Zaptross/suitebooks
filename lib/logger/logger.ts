@@ -32,6 +32,7 @@ function doLog(level: LogLevel, ...loggable: unknown[]) {
     return void 0;
   }
 
+  // eslint-disable-next-line no-console
   console.log(...formatLoggable(level, loggable));
 
   if (level === LogLevel.FATAL) {
