@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { NextApiRequest, NextApiResponse } from "next";
 import logger from "../logger/logger";
 import { Override } from "./types";
@@ -37,4 +38,17 @@ export function internalServerError(
 ) {
   logger.error(req.method, req.url, (error as Error).message, error);
   res.status(500).json({ error: "Internal server error" });
+}
+
+/**
+ * Create a session cookie for the user, which expires in 12 hours.
+ */
+export function createSessionCookie() {
+  return {
+    id: uuidv4(),
+    expires: new Date(Date.now() + 12 * 60 * 60 * 1000),
+    secure: true,
+    httpOnly: true,
+    sameSite: "strict" as "strict",
+  };
 }

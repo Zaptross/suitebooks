@@ -75,4 +75,10 @@ export class User extends BaseEntity {
       .where("user.phoneNumber = :phoneNumber", { phoneNumber })
       .getOne();
   }
+
+  public static async getByUuid(uuid: string) {
+    return await this.createQueryBuilder("user")
+      .where("user.uuid = :uuid", { uuid })
+      .getOne();
+  }
 }

@@ -1,9 +1,12 @@
+import { setCookie } from "cookies-next";
 import { Password, User } from "../../lib/database";
 import logger from "../../lib/logger/logger";
+import { Session } from "../../lib/sessions";
 import {
   APIRequest,
   APIResponse,
   badRequest,
+  createSessionCookie,
   internalServerError,
 } from "../../lib/utils/api";
 import { isEmailValid } from "../../lib/utils/validation";
@@ -15,7 +18,6 @@ type LoginRequestParams = {
 };
 
 type LoginResponseJson = {
-  userUuid: string;
   token: string;
   // TODO - add permissions to this response
 };
@@ -65,11 +67,21 @@ async function postLogin(
       return badRequest(res, new Error("Incorrect email or password"));
     }
 
-    // TODO - create session
+    let cookie = req.cookies.id;
+    if (!cookie) {
+      const { id, ...settings } = createSessionCookie();
+      setCookie("id", id, {
+        req,
+        res,
+        ...settings,
+      });
 
-    // TODO - return session
+      cookie = id;
+    }
 
-    res.status(200).json({ userUuid: user.uuid, token: "TODO" });
+    const session = await Session.create(cookie, user.uuid);
+
+    res.status(200).json({ token: await session.getPASETO() });
   } catch (e) {
     return internalServerError(req, res, e as Error);
   }
